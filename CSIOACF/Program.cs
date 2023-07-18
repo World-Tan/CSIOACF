@@ -4,9 +4,12 @@ namespace CSIOACF
 {
 	internal class Program
 	{
-		static void Main(string[] args)
+		static unsafe void Main(string[] args)
 		{
-			Console.WriteLine("Hello World!");
+			//int exp =0;
+			//double frac = Math.FrExp(3, &exp);
+			//Console.WriteLine(frac + " " + exp + " " + Math.LdExp(frac, exp));
+			Console.WriteLine("" + Math.Sqrt(5));
 		}
 	}
 }

@@ -1,16 +1,14 @@
 ﻿using System;
-using static System.Math;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Security.Cryptography.X509Certificates;
 
 namespace CSIOACF
 {
 	public class Math
 	{
-        private const int NumTerms = 10; // Number of terms in the Taylor series
+        private const int NumTerms = 20; // Number of terms in the Taylor series
 
         public static float Sin(float angle)
         {
@@ -162,6 +160,7 @@ namespace CSIOACF
                 return y > 0 ? MathF.PI / 2 : -MathF.PI / 2; // 90 or -90 degrees
             }
         }
+
         public static float Sinh(float angle)
         {
             float result = angle;
@@ -220,37 +219,41 @@ namespace CSIOACF
 
             return result;
         }
+
         public static float Log(float x)
         {
-            // Taylor series for log(1 + x) centered at x = 0
-            if (x <= -1)
+            if (x <= 0)
             {
-                throw new ArgumentException("Input must be greater than -1.");
+                throw new ArgumentException("Input must be greater than 0.");
             }
 
-            if (x == 0)
+            if (x == 1)
+            {
+                return 0; // log(1) = 0
+            }
+
+            if (x < 0)
             {
                 throw new ArgumentException("Input must be greater than 0.");
             }
 
             float result = 0;
-            float power = x;
-            int sign = 1;
+            float term = (x - 1) / (x + 1);
+            float power = term * term;
 
-            for (int i = 1; i <= NumTerms; i++)
+            for (int i = 1; i <= NumTerms; i += 2)
             {
-                sign = -sign;
-                result += sign * power / i;
-                power *= x;
+                result += term / i;
+                term *= power;
             }
 
-            return result;
+            return 2 * result;
         }
 
         public static float Log10(float x)
         {
             // Use the identity: log10(x) = log(x) / log(10)
-            return Log(x) / MathF.Log(10);
+            return Log(x) / Log(10);
         }
 
         public static float Pow(float x, float y)
@@ -269,45 +272,62 @@ namespace CSIOACF
             return Exp(y * logX);
         }
 
-        // Helper method to check if a float value is an integer
         private static bool IsInteger(float value)
         {
-            return MathF.Abs(value % 1) < float.Epsilon;
+            return Abs(value % 1) < float.Epsilon;
         }
 
+        public static float Sqrt(float N)
+        {
+            if (N < 0) throw new ArgumentException("N can't be negative.");
+            float guess = N/2, prev = 0;
+            while (Abs(prev - guess) > 0.00000001f)
+            {
+                prev = guess;
+                guess = ((N / guess) + guess) / 2;
+            }
 
+            return guess;
+        }
 
-        public static double Floor(float x)
+        public static double Ceil(float x)
 		{
-			// Get the integer part of the number
-			double integerPart = (x >= 0) ? MathF.Truncate(x) : MathF.Truncate(x) + 1;
+			if (x < 0) return -Floor(-x);
 
-			// Check if the number is already an integer
-			if (x == integerPart)
-				return x;
-
-			// If the number is negative, adjust the integer part
-			if (x < 0)
-				integerPart -= 1;
-
-			return integerPart;
+            double frac = x - (int)x;
+			return frac == 0 ? x : (int)x + 1;
 		}
 
-		public static unsafe double ldexp(double x, double y)
+		public static double Floor(float x)
+		{
+            if (x < 0) return -Ceil(-x);
+
+			return (int)x;
+		}
+
+		public static unsafe double Abs(double x)
+		{
+			return x < 0 ? -x : x;
+		}
+
+		public static unsafe double LdExp(double x, double y)
 		{
             return x * CSIOACF.Math.Pow(2, (float)y);
 		}
 
-		public static unsafe double frexp(double x, int *y)
+		public static unsafe double FrExp(double x, int *y)
         {
-            
+            int j = 0, i = 1;
+            while (i < x) { i *= 2; j++; }
+
+            *y = j;
+            return x / i;
         }
 
 		public static unsafe double ModF(double x, double *ip)
 		{
-            double div = x / (*ip);
-            *ip = (int)div;
-			return div - *ip;
+            *ip = (int)x;
+			return x - *ip;
 		}
 
 		public static double FMod(double x, double y)
